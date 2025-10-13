@@ -1,1 +1,28 @@
-
+{
+  "movies": [
+    {
+      "id": "m-sample-1",
+      "title": "Sample Action Movie",
+      "description": "This is a sample movie. Replace with your content.",
+      "poster": "https://i.imgur.com/2nCt3Sb.jpg",
+      "trailer": "https://www.youtube.com/embed/ScMzIvxBSi4",
+      "link": "https://drive.google.com/uc?export=preview&id=YOUR_DRIVE_FILE_ID",
+      "category": "Action",
+      "type": "Movie",
+      "vj": false,
+      "createdAt": "2025-01-01T00:00:00Z"
+    },
+    {
+      "id": "m-vj-1",
+      "title": "VJ Junior Sample",
+      "description": "VJ Junior demo episode",
+      "poster": "https://i.imgur.com/QpNVQGf.jpg",
+      "trailer": "https://www.youtube.com/embed/tgbNymZ7vqY",
+      "link": "https://drive.google.com/uc?export=preview&id=YOUR_DRIVE_FILE_ID",
+      "category": "VJ",
+      "type": "Movie",
+      "vj": true,
+      "createdAt": "2025-01-01T00:00:00Z"
+    }
+  ]
+}
