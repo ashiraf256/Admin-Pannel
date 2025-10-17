@@ -15,12 +15,13 @@
       text-align: center;
       color: #66fcf1;
     }
-    form {
+    form, .token-box {
       max-width: 600px;
       margin: 0 auto;
       background: #1f2833;
       padding: 20px;
       border-radius: 10px;
+      margin-bottom: 20px;
     }
     input, textarea, button {
       width: 100%;
@@ -53,6 +54,15 @@
 <body>
 
   <h1>🎬 LeoXtream Admin Panel</h1>
+
+  <!-- TOKEN INPUT BOX -->
+  <div class="token-box">
+    <h3>🔑 Enter Your GitHub Token</h3>
+    <input type="password" id="tokenInput" placeholder="Enter your GitHub Personal Access Token" required>
+    <button onclick="saveToken()">Save Token</button>
+    <p style="font-size:13px; color:#ccc;">Your token is stored temporarily in this browser (not in code).</p>
+  </div>
+
   <form id="movieForm">
     <input type="text" id="title" placeholder="Movie Title" required>
     <textarea id="description" placeholder="Description" required></textarea>
@@ -69,12 +79,26 @@
     const OWNER = "ashiraf256";
     const REPO = "Admin-Pannel";
     const FILE_PATH = "movies.json";
-    const TOKEN = "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"; // Replace this
+
+    // Save token to local browser storage
+    function saveToken() {
+      const token = document.getElementById("tokenInput").value.trim();
+      if (!token) return alert("Please enter your GitHub token!");
+      localStorage.setItem("github_token", token);
+      alert("✅ Token saved successfully!");
+    }
 
     document.getElementById("movieForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const message = document.getElementById("message");
       message.textContent = "Uploading...";
+      const TOKEN = localStorage.getItem("github_token");
+
+      if (!TOKEN) {
+        message.textContent = "❌ Please enter and save your GitHub token first.";
+        message.style.color = "red";
+        return;
+      }
 
       const movie = {
         title: document.getElementById("title").value,
@@ -88,8 +112,6 @@
 
       try {
         const apiUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`;
-
-        // Get the current file data (to append)
         const res = await fetch(apiUrl, {
           headers: { Authorization: `token ${TOKEN}` }
         });
@@ -104,10 +126,8 @@
           movies = existingContent;
         }
 
-        // Add new movie
         movies.unshift(movie);
 
-        // Upload updated JSON
         const upload = await fetch(apiUrl, {
           method: "PUT",
           headers: {
@@ -136,5 +156,6 @@
       }
     });
   </script>
+
 </body>
-</html>
+  </html>
