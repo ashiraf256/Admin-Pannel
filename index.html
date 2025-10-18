@@ -1,404 +1,169 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>LeoXtream — Admin Panel</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeoXtream Admin Panel</title>
 <style>
-  :root{--bg:#0b0c10;--card:#0f1115;--accent:#e50914;--muted:#9aa0a6}
-  body{margin:0;font-family:Inter,Arial;background:var(--bg);color:#fff;padding:18px}
-  .wrap{max-width:1100px;margin:0 auto}
-  header{display:flex;justify-content:space-between;align-items:center;gap:12px}
-  h1{margin:0}
-  .small{color:var(--muted);font-size:13px}
-  input,select,textarea,button{font:inherit}
-  input,select,textarea{width:100%;padding:10px;margin:6px 0;border-radius:8px;border:1px solid #222;background:#0f1113;color:#fff}
-  button{padding:10px 14px;border-radius:8px;border:0;background:var(--accent);color:#fff;cursor:pointer}
-  .row{display:flex;gap:12px}
-  .col{flex:1}
-  .grid{display:grid;grid-template-columns:1fr 360px;gap:18px}
-  .movie-list{margin-top:12px}
-  .movie-item{border:1px solid rgba(255,255,255,0.04);padding:10px;margin-bottom:8px;border-radius:8px;display:flex;gap:12px;align-items:flex-start}
-  img.poster{width:90px;height:130px;object-fit:cover;border-radius:4px}
-  .controls{display:flex;gap:8px;flex-wrap:wrap}
-  .muted{color:var(--muted)}
-  .hint{font-size:13px;color:#bdbdbd}
-  .top-actions{display:flex;gap:8px;align-items:center}
-  .danger{background:#222;color:#fff}
-  label{font-size:13px;color:var(--muted)}
-  .field-row{display:flex;gap:8px}
-  .field-row > *{flex:1}
-  .meta{font-size:12px;color:var(--muted)}
-  pre.json-output{background:#0b0c10;border:1px solid #222;padding:12px;border-radius:8px;overflow:auto;max-height:320px}
+  body {
+    font-family: Arial, sans-serif;
+    background: #0b0c10;
+    color: #fff;
+    padding: 20px;
+  }
+  h1 { text-align: center; color: #66ccff; }
+  form, .movie-box {
+    max-width: 700px;
+    margin: 20px auto;
+    background: #1f2833;
+    padding: 20px;
+    border-radius: 8px;
+  }
+  input, textarea, select, button {
+    width: 100%;
+    margin: 8px 0;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+  }
+  input, textarea, select { background: #0b0c10; color: #fff; }
+  button {
+    background: #45a29e;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  button:hover { background: #66fcf1; color: #000; }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div>
-      <h1>LeoXtream — Admin</h1>
-      <div class="small">TMDB & GitHub Integration • Password protected</div>
-    </div>
-    <div class="top-actions">
-      <div class="small">Status: <span id="status">locked</span></div>
-      <button id="logoutBtn" style="display:none;background:#333">Logout</button>
-    </div>
-  </header>
+  <h1>LeoXtream Admin Panel</h1>
 
-  <!-- LOGIN -->
-  <section id="loginSection" style="margin-top:18px">
-    <div class="small">Enter Admin Password</div>
-    <input id="adminPassword" placeholder="Password" />
-    <button id="loginBtn">Unlock Admin</button>
-    <div class="hint">Default password: <strong>admin123</strong> — change in file after deploy if you want.</div>
-  </section>
+  <form id="loginForm">
+    <h3>Login</h3>
+    <input type="password" id="password" placeholder="Enter admin password" required>
+    <button type="submit">Login</button>
+  </form>
 
-  <!-- ADMIN UI -->
-  <section id="adminUI" style="display:none;margin-top:18px">
-    <div style="display:flex;gap:12px;flex-wrap:wrap">
-      <div style="flex:1;min-width:320px">
-        <div class="small">TMDB Search (fills title, poster, overview, trailer)</div>
-        <div style="display:flex;gap:8px">
-          <input id="tmdbQuery" placeholder="Search TMDB by title..." />
-          <button id="tmdbSearchBtn">Search</button>
-        </div>
-        <div id="tmdbResults" style="margin-top:12px"></div>
-
-        <hr style="border-color:#222;margin:12px 0" />
-
-        <div class="small">Add / Edit Movie</div>
-        <input id="title" placeholder="Title" />
-        <textarea id="description" rows="4" placeholder="Description"></textarea>
-        <input id="poster" placeholder="Poster URL (image)" />
-        <input id="trailer" placeholder="Trailer (YouTube embed URL like https://www.youtube.com/embed/KEY)" />
-        <input id="videoLink" placeholder="Video link (Google Drive preview or direct MP4/MKV URL)" />
-        <input id="downloadLink" placeholder="Download link (direct or drive uc export)" />
-        <div class="field-row">
-          <input id="category" placeholder="Category (Movie / Series / VJ)" />
-          <select id="type"><option>Movie</option><option>Series</option></select>
-        </div>
-        <div class="field-row">
-          <input id="vjName" placeholder="VJ name (e.g. VJ Junior) - optional" />
-          <input id="vjLink" placeholder="VJ link (optional) - e.g. special page or profile" />
-        </div>
-
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button id="saveBtn">Save to Local</button>
-          <button id="commitBtn">Push to GitHub (commit)</button>
-          <button id="downloadJson" class="danger">Download JSON</button>
-        </div>
-
-        <div style="margin-top:12px" class="hint">
-          Use TMDB Search to auto-fill. Add video link (Drive preview or direct). Save locally then Push to GitHub with your token.
-        </div>
-
-        <hr style="border-color:#222;margin:12px 0" />
-
-        <div class="small">GitHub settings (for push)</div>
-        <div style="display:flex;gap:8px">
-          <input id="ghUser" placeholder="GitHub username" value="ashiraf256" />
-          <input id="ghRepo" placeholder="Repo name" value="Admin-Pannel" />
-        </div>
-        <div style="display:flex;gap:8px">
-          <input id="ghBranch" placeholder="Branch (default: main)" value="main" />
-          <input id="ghFilePath" placeholder="File path (default: movies.json)" value="movies.json" />
-        </div>
-
-        <div style="margin-top:8px" class="small">GitHub Token (paste & Save) — stored in this browser session only</div>
-        <div style="display:flex;gap:8px">
-          <input id="ghToken" placeholder="Paste your GitHub token and click Save Token" />
-          <button id="saveTokenBtn">Save Token</button>
-        </div>
-        <div class="meta" style="margin-top:8px">Token must have write access to the repo (contents: read+write). Use fine-grained token for only this repo if possible.</div>
-      </div>
-
-      <div style="flex:0 0 360px;min-width:320px">
-        <div class="small">Current JSON (preview)</div>
-        <pre id="jsonPreview" class="json-output">No data loaded</pre>
-
-        <div style="margin-top:12px">
-          <button id="loadFromGit">Load movies.json from GitHub</button>
-          <button id="clearLocal">Clear Local</button>
-        </div>
-
-        <div style="margin-top:12px" class="small">
-          <strong>Tips:</strong>
-          <ul>
-            <li>Poster: use TMDB poster or your own image URL</li>
-            <li>Google Drive preview URL example: <code>https://drive.google.com/uc?export=preview&id=FILE_ID</code></li>
-            <li>Download link example: <code>https://drive.google.com/uc?id=FILE_ID&export=download</code></li>
-          </ul>
-        </div>
-      </div>
+  <div id="adminArea" style="display:none;">
+    <div class="token-box">
+      <h3>GitHub Token Setup</h3>
+      <input type="text" id="tokenInput" placeholder="Enter your GitHub Token">
+      <button onclick="saveToken()">Save Token</button>
     </div>
 
-    <hr style="border-color:#222;margin:18px 0" />
-
-    <div>
-      <div class="small">Current movies (loaded in session)</div>
-      <div id="movieList" class="movie-list"></div>
+    <div class="movie-box">
+      <h3>Search TMDB Movie</h3>
+      <input type="text" id="searchQuery" placeholder="Search for a movie...">
+      <button onclick="searchMovie()">Search</button>
     </div>
-  </section>
-</div>
+
+    <div id="results"></div>
+
+    <form id="movieForm">
+      <h3>Manual Movie Entry</h3>
+      <input type="text" id="title" placeholder="Movie Title" required>
+      <textarea id="description" placeholder="Description"></textarea>
+      <input type="text" id="poster" placeholder="Poster URL">
+      <input type="text" id="link" placeholder="Movie Link (server)">
+      <input type="text" id="vjname" placeholder="VJ Name">
+      <button type="submit">Add Movie</button>
+    </form>
+  </div>
 
 <script>
-/* ============ CONFIG ============ */
-const ADMIN_PASSWORD = 'admin123'; // admin password
-const TMDB_API_KEY = 'd6b0fe020db56e35227657fd8c0afd5c'; // your TMDB key
-const DEFAULT_GH_BRANCH = 'main';
-const DEFAULT_FILE_PATH = 'movies.json';
+const REPO = "ashiraf256/Admin-Pannel";
+const FILE_PATH = "movies.json";
 
-/* ============ STATE ============ */
-let movies = []; // in-memory array
-let editingIndex = -1;
-
-/* ============ HELPERS ============ */
-const $ = q => document.querySelector(q);
-const statusEl = $('#status');
-function setStatus(t){ statusEl.textContent = t; }
-function showAdminUI(show){
-  $('#loginSection').style.display = show ? 'none' : 'block';
-  $('#adminUI').style.display = show ? 'block' : 'none';
-  $('#logoutBtn').style.display = show ? 'inline-block' : 'none';
-  setStatus(show ? 'unlocked' : 'locked');
-}
-
-/* ============ AUTH ============ */
-$('#loginBtn').addEventListener('click', ()=>{
-  const p = $('#adminPassword').value || '';
-  if(p === ADMIN_PASSWORD){ sessionStorage.setItem('leo_admin_unlocked','1'); showAdminUI(true); loadLocalMovies(); } else { alert('Wrong password'); }
-});
-$('#logoutBtn').addEventListener('click', ()=>{ sessionStorage.removeItem('leo_admin_unlocked'); showAdminUI(false); });
-
-if(sessionStorage.getItem('leo_admin_unlocked')) showAdminUI(true);
-
-/* ============ TMDB SEARCH ============ */
-$('#tmdbSearchBtn').addEventListener('click', tmdbSearch);
-async function tmdbSearch(){
-  const q = $('#tmdbQuery').value.trim();
-  if(!q) return alert('Enter a search term');
-  $('#tmdbResults').innerHTML = 'Searching...';
-  try{
-    const res = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(q)}`);
-    const j = await res.json();
-    const list = j.results || [];
-    if(!list.length){ $('#tmdbResults').innerHTML = '<div class="muted">No results</div>'; return; }
-    $('#tmdbResults').innerHTML = list.slice(0,8).map(item=>{
-      const title = item.title || item.name || '';
-      const year = item.release_date ? item.release_date.slice(0,4) : (item.first_air_date ? item.first_air_date.slice(0,4) : '');
-      const poster = item.poster_path ? 'https://image.tmdb.org/t/p/w300'+item.poster_path : '';
-      return `
-        <div style="display:flex;gap:12px;padding:8px;border-radius:6px;border:1px solid #111;margin-bottom:8px">
-          <img src="${poster}" style="width:60px;height:90px;object-fit:cover;border-radius:4px" />
-          <div style="flex:1">
-            <div style="font-weight:700">${title} <span class="muted">(${year})</span></div>
-            <div class="muted" style="font-size:13px">${(item.overview||'').slice(0,180)}</div>
-            <div style="margin-top:8px"><button onclick='selectTMDB(${item.id}, "${item.media_type}")'>Select</button></div>
-          </div>
-        </div>
-      `;
-    }).join('');
-  }catch(err){ console.error(err); $('#tmdbResults').innerHTML = '<div class="muted">Error</div>'; }
-}
-
-/* Fetch TMDB details for selected item and fill form */
-async function selectTMDB(id, mediaType='movie'){
-  try{
-    const res = await fetch(`https://api.themoviedb.org/3/${mediaType}/${id}?api_key=${TMDB_API_KEY}&append_to_response=videos`);
-    const m = await res.json();
-    $('#title').value = m.title || m.name || '';
-    $('#description').value = m.overview || '';
-    $('#poster').value = m.poster_path ? 'https://image.tmdb.org/t/p/w500'+m.poster_path : '';
-    // find youtube trailer
-    const vids = (m.videos && m.videos.results) || [];
-    const yt = vids.find(v=>v.site==='YouTube' && v.type==='Trailer') || vids[0];
-    if(yt) $('#trailer').value = yt.site==='YouTube' ? `https://www.youtube.com/embed/${yt.key}` : '';
-    $('#tmdbResults').innerHTML = '<div class="muted">TMDB data loaded into form. Add video link and save.</div>';
-  }catch(e){ console.error(e); alert('Failed to fetch TMDB details'); }
-}
-
-/* ============ LOCAL STORAGE (session) ============ */
-function loadLocalMovies(){
-  const raw = sessionStorage.getItem('leo_movies');
-  movies = raw ? JSON.parse(raw) : [];
-  renderMovies();
-}
-function saveLocalMovies(){
-  sessionStorage.setItem('leo_movies', JSON.stringify(movies,null,2));
-  renderMovies();
-}
-
-/* ============ FORM HANDLING ============ */
-$('#saveBtn').addEventListener('click', ()=>{
-  const item = readForm();
-  if(!item.title || !item.videoLink){ return alert('Title and video link required'); }
-  if(editingIndex >= 0){
-    movies[editingIndex] = item;
-    editingIndex = -1;
+document.getElementById("loginForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const pass = document.getElementById("password").value;
+  if (pass === "admin123") {
+    document.getElementById("loginForm").style.display = "none";
+    document.getElementById("adminArea").style.display = "block";
   } else {
-    item.id = 'm' + Math.random().toString(36).slice(2,9);
-    item.createdAt = new Date().toISOString();
-    movies.push(item);
+    alert("Wrong password!");
   }
-  saveLocalMovies();
-  alert('Saved to local session. Use "Push to GitHub" to commit to movies.json');
-  clearForm();
 });
 
-function readForm(){
-  return {
-    id: $('#title').value ? ($('#idVal' ? $('#idVal') : null) : undefined,
-    title: $('#title').value.trim(),
-    description: $('#description').value.trim(),
-    poster: $('#poster').value.trim(),
-    trailer: $('#trailer').value.trim(),
-    videoLink: $('#videoLink').value.trim(),
-    downloadLink: $('#downloadLink').value.trim(),
-    category: $('#category').value.trim() || 'Movie',
-    type: $('#type').value,
-    vjName: $('#vjName').value.trim(),
-    vjLink: $('#vjLink').value.trim(),
-    vj: ($('#category').value.trim().toLowerCase() === 'vj') || false
-  };
-}
-function clearForm(){
-  $('#title').value='';$('#description').value='';$('#poster').value='';$('#trailer').value='';$('#videoLink').value='';$('#downloadLink').value='';$('#vjName').value='';$('#vjLink').value='';editingIndex=-1;
+function saveToken() {
+  const token = document.getElementById("tokenInput").value;
+  if (token.trim() === "") return alert("Enter a token first");
+  localStorage.setItem("github_token", token);
+  alert("Token saved!");
 }
 
-/* ============ RENDER MOVIES LIST ============ */
-function renderMovies(){
-  const container = $('#movieList'); container.innerHTML = '';
-  if(!Array.isArray(movies) || !movies.length){ container.innerHTML = '<div class="muted">No movies yet</div>'; $('#jsonPreview').textContent='No data loaded'; return; }
-  $('#jsonPreview').textContent = JSON.stringify(movies, null, 2);
-  movies.slice().reverse().forEach((m,i)=>{
-    const el = document.createElement('div'); el.className='movie-item';
-    el.innerHTML = `
-      <img class="poster" src="${m.poster||''}" />
-      <div style="flex:1">
-        <div style="font-weight:700">${escapeHtml(m.title)} <span class="muted">• ${m.type} ${m.vj ? '• VJ' : ''}</span></div>
-        <div class="small muted">${escapeHtml(m.category)} • ${escapeHtml((m.description||'').slice(0,120))}</div>
-        <div style="margin-top:8px" class="controls">
-          <button onclick="editMovie('${m.id}')">Edit</button>
-          <button onclick="deleteMovie('${m.id}')">Delete</button>
-          <a target="_blank" href="${m.videoLink}" style="padding:8px 10px;border-radius:8px;background:#222;color:#fff;text-decoration:none">Open Link</a>
-        </div>
-      </div>
+async function searchMovie() {
+  const query = document.getElementById("searchQuery").value.trim();
+  if (!query) return;
+  const apiKey = "YOUR_TMDB_KEY";
+  const url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(query)}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  const resultsDiv = document.getElementById("results");
+  resultsDiv.innerHTML = "";
+  data.results.slice(0, 5).forEach(movie => {
+    const div = document.createElement("div");
+    div.innerHTML = `
+      <img src="https://image.tmdb.org/t/p/w200${movie.poster_path}" style="width:100px;">
+      <b>${movie.title}</b><br>${movie.overview}<br>
+      <button onclick='selectMovie("${movie.title.replace(/"/g,"'")}", "${movie.overview.replace(/"/g,"'")}", "https://image.tmdb.org/t/p/w500${movie.poster_path}")'>Select</button>
+      <hr>
     `;
-    container.appendChild(el);
+    resultsDiv.appendChild(div);
   });
 }
-window.editMovie = function(id){
-  const idx = movies.findIndex(x=>x.id===id);
-  if(idx<0) return;
-  const m = movies[idx];
-  editingIndex = idx;
-  $('#title').value = m.title; $('#description').value = m.description; $('#poster').value = m.poster;
-  $('#trailer').value = m.trailer; $('#videoLink').value = m.videoLink; $('#downloadLink').value = m.downloadLink;
-  $('#category').value = m.category || 'Movie'; $('#type').value = m.type || 'Movie';
-  $('#vjName').value = m.vjName || ''; $('#vjLink').value = m.vjLink || '';
-}
-window.deleteMovie = function(id){
-  if(!confirm('Delete movie?')) return;
-  movies = movies.filter(x=>x.id!==id);
-  saveLocalMovies();
+
+function selectMovie(title, description, poster) {
+  document.getElementById("title").value = title;
+  document.getElementById("description").value = description;
+  document.getElementById("poster").value = poster;
 }
 
-/* ============ DOWNLOAD JSON ============ */
-$('#downloadJson').addEventListener('click', ()=>{
-  const data = JSON.stringify(movies, null, 2);
-  const blob = new Blob([data], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href=url; a.download='movies.json'; document.body.appendChild(a); a.click(); a.remove();
+document.getElementById("movieForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const movie = {
+    title: title.value,
+    description: description.value,
+    poster: poster.value,
+    link: link.value,
+    vjname: vjname.value
+  };
+  await saveMovie(movie);
 });
 
-/* ============ LOAD FROM GIT ============ */
-$('#loadFromGit').addEventListener('click', loadMoviesFromGit);
-async function loadMoviesFromGit(){
-  const user = $('#ghUser').value.trim();
-  const repo = $('#ghRepo').value.trim();
-  const branch = $('#ghBranch').value.trim() || DEFAULT_GH_BRANCH;
-  const path = $('#ghFilePath').value.trim() || DEFAULT_FILE_PATH;
-  if(!user || !repo) return alert('Enter GitHub username and repo name');
-  const rawUrl = `https://raw.githubusercontent.com/${user}/${repo}/${branch}/${path}`;
-  setStatus('fetching json...');
-  try{
-    const r = await fetch(rawUrl + '?_=' + Date.now());
-    if(!r.ok) throw new Error('Not found: ' + r.status);
-    const j = await r.json();
-    movies = Array.isArray(j) ? j : (j && Array.isArray(j.movies) ? j.movies : []);
-    saveLocalMovies();
-    alert('Loaded movies.json from GitHub into admin local session');
-    setStatus('loaded from GitHub');
-  }catch(e){ console.error(e); alert('Failed to load JSON from GitHub: '+ e.message); setStatus('error'); }
+async function saveMovie(movie) {
+  const token = localStorage.getItem("github_token");
+  if (!token) return alert("Token not found! Please save it first.");
+  
+  const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${FILE_PATH}`);
+  const data = await res.json().catch(() => []);
+  let movies = [];
+  
+  if (data.content) {
+    const decoded = atob(data.content);
+    movies = JSON.parse(decoded);
+  }
+
+  movies.unshift(movie);
+  const updated = btoa(JSON.stringify(movies, null, 2));
+
+  await fetch(`https://api.github.com/repos/${REPO}/contents/${FILE_PATH}`, {
+    method: "PUT",
+    headers: {
+      Authorization: `token ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      message: "Add new movie",
+      content: updated,
+      sha: data.sha
+    })
+  }).then(r => {
+    if (r.ok) alert("Movie added successfully!");
+    else alert("Failed to save movie!");
+  });
 }
-
-/* ============ GITHUB TOKEN (session) ============ */
-$('#saveTokenBtn').addEventListener('click', ()=>{
-  const t = $('#ghToken').value.trim();
-  if(!t) return alert('Paste your GitHub token first');
-  sessionStorage.setItem('leo_github_token', t);
-  alert('Token saved in session (will be cleared when you close the browser tab).');
-});
-
-/* ============ GITHUB COMMIT ============ */
-$('#commitBtn').addEventListener('click', async ()=>{
-  const user = $('#ghUser').value.trim();
-  const repo = $('#ghRepo').value.trim();
-  const branch = $('#ghBranch').value.trim() || DEFAULT_GH_BRANCH;
-  const path = $('#ghFilePath').value.trim() || DEFAULT_FILE_PATH;
-  const token = sessionStorage.getItem('leo_github_token');
-  if(!user||!repo||!token) return alert('Fill GitHub user, repo and save token to session to push.');
-
-  // prepare content (array)
-  const contentObj = movies;
-  const contentStr = JSON.stringify(contentObj, null, 2);
-  // encode UTF-8 safe
-  const encoded = btoa(unescape(encodeURIComponent(contentStr)));
-
-  const apiUrl = `https://api.github.com/repos/${user}/${repo}/contents/${path}`;
-
-  try{
-    setStatus('fetching file sha...');
-    const getRes = await fetch(apiUrl + (branch ? `?ref=${branch}` : ''), { headers: { Authorization: 'token ' + token }});
-    let sha = null;
-    if(getRes.status === 200){
-      const info = await getRes.json();
-      sha = info.sha;
-    } else if(getRes.status === 404) {
-      sha = null; // new file will be created
-    } else {
-      const t = await getRes.text(); throw new Error('GET error: '+ getRes.status + ' ' + t);
-    }
-
-    setStatus('committing to GitHub...');
-    const commitBody = {
-      message: `Update ${path} via LeoXtream Admin`,
-      content: encoded,
-      branch: branch
-    };
-    if(sha) commitBody.sha = sha;
-
-    const putRes = await fetch(apiUrl, {
-      method: 'PUT',
-      headers: { Authorization: 'token ' + token, 'Content-Type':'application/json' },
-      body: JSON.stringify(commitBody)
-    });
-
-    if(!putRes.ok){
-      const t = await putRes.json().catch(()=> null);
-      throw new Error((t && t.message) ? t.message : ('Commit failed: ' + putRes.status));
-    }
-
-    setStatus('committed');
-    alert('Pushed movies.json to GitHub successfully');
-  }catch(e){ console.error(e); alert('GitHub commit failed: ' + e.message); setStatus('error'); }
-});
-
-/* ============ UTIL ============ */
-function escapeHtml(s){ return String(s||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
-
-/* initial load */
-loadLocalMovies();
 </script>
 </body>
   </html>
