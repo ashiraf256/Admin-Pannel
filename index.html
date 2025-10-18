@@ -6,164 +6,141 @@
 <title>LeoXtream Admin Panel</title>
 <style>
   body {
-    font-family: Arial, sans-serif;
     background: #0b0c10;
     color: #fff;
+    font-family: Arial, sans-serif;
     padding: 20px;
   }
-  h1 { text-align: center; color: #66ccff; }
-  form, .movie-box {
-    max-width: 700px;
-    margin: 20px auto;
+  .login, .admin {
+    max-width: 600px;
+    margin: 0 auto;
     background: #1f2833;
     padding: 20px;
-    border-radius: 8px;
+    border-radius: 10px;
   }
-  input, textarea, select, button {
+  input, textarea, button {
     width: 100%;
-    margin: 8px 0;
     padding: 10px;
+    margin: 10px 0;
     border: none;
     border-radius: 5px;
   }
-  input, textarea, select { background: #0b0c10; color: #fff; }
+  input, textarea {
+    background: #0b0c10;
+    color: #fff;
+  }
   button {
     background: #45a29e;
     color: #fff;
     font-weight: bold;
-    cursor: pointer;
   }
-  button:hover { background: #66fcf1; color: #000; }
+  button:hover {
+    background: #66fcf1;
+    color: #000;
+  }
+  .hidden { display: none; }
 </style>
 </head>
 <body>
-  <h1>LeoXtream Admin Panel</h1>
+  <h2 style="text-align:center;">🎬 LeoXtream Admin Panel</h2>
 
-  <form id="loginForm">
+  <div id="login" class="login">
     <h3>Login</h3>
-    <input type="password" id="password" placeholder="Enter admin password" required>
-    <button type="submit">Login</button>
-  </form>
-
-  <div id="adminArea" style="display:none;">
-    <div class="token-box">
-      <h3>GitHub Token Setup</h3>
-      <input type="text" id="tokenInput" placeholder="Enter your GitHub Token">
-      <button onclick="saveToken()">Save Token</button>
-    </div>
-
-    <div class="movie-box">
-      <h3>Search TMDB Movie</h3>
-      <input type="text" id="searchQuery" placeholder="Search for a movie...">
-      <button onclick="searchMovie()">Search</button>
-    </div>
-
-    <div id="results"></div>
-
-    <form id="movieForm">
-      <h3>Manual Movie Entry</h3>
-      <input type="text" id="title" placeholder="Movie Title" required>
-      <textarea id="description" placeholder="Description"></textarea>
-      <input type="text" id="poster" placeholder="Poster URL">
-      <input type="text" id="link" placeholder="Movie Link (server)">
-      <input type="text" id="vjname" placeholder="VJ Name">
-      <button type="submit">Add Movie</button>
-    </form>
+    <input type="password" id="password" placeholder="Enter admin password">
+    <button onclick="checkPassword()">Login</button>
   </div>
 
-<script>
-const REPO = "ashiraf256/Admin-Pannel";
-const FILE_PATH = "movies.json";
+  <div id="admin" class="admin hidden">
+    <h3>Upload Movie</h3>
+    <input id="token" placeholder="Enter GitHub Token">
+    <input id="repo" value="ashiraf256/LeoXtream" readonly>
+    <input id="movieTitle" placeholder="Movie Title">
+    <textarea id="movieDescription" placeholder="Movie Description"></textarea>
+    <input id="posterUrl" placeholder="Poster URL (from TMDB)">
+    <input id="videoUrl" placeholder="Video Link (VJ server)">
+    <input id="vjName" placeholder="VJ Name">
+    <button onclick="searchTMDB()">Search from TMDB</button>
+    <input id="tmdbQuery" placeholder="Search TMDB movie">
+    <div id="tmdbResults"></div>
+    <button onclick="uploadMovie()">Upload to GitHub</button>
+  </div>
 
-document.getElementById("loginForm").addEventListener("submit", e => {
-  e.preventDefault();
-  const pass = document.getElementById("password").value;
-  if (pass === "admin123") {
-    document.getElementById("loginForm").style.display = "none";
-    document.getElementById("adminArea").style.display = "block";
-  } else {
-    alert("Wrong password!");
-  }
-});
+  <script>
+    const PASSWORD = "admin123";
 
-function saveToken() {
-  const token = document.getElementById("tokenInput").value;
-  if (token.trim() === "") return alert("Enter a token first");
-  localStorage.setItem("github_token", token);
-  alert("Token saved!");
-}
+    function checkPassword() {
+      const pass = document.getElementById('password').value;
+      if (pass === PASSWORD) {
+        document.getElementById('login').classList.add('hidden');
+        document.getElementById('admin').classList.remove('hidden');
+      } else {
+        alert("Incorrect password!");
+      }
+    }
 
-async function searchMovie() {
-  const query = document.getElementById("searchQuery").value.trim();
-  if (!query) return;
-  const apiKey = "YOUR_TMDB_KEY";
-  const url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(query)}`;
-  const res = await fetch(url);
-  const data = await res.json();
-  const resultsDiv = document.getElementById("results");
-  resultsDiv.innerHTML = "";
-  data.results.slice(0, 5).forEach(movie => {
-    const div = document.createElement("div");
-    div.innerHTML = `
-      <img src="https://image.tmdb.org/t/p/w200${movie.poster_path}" style="width:100px;">
-      <b>${movie.title}</b><br>${movie.overview}<br>
-      <button onclick='selectMovie("${movie.title.replace(/"/g,"'")}", "${movie.overview.replace(/"/g,"'")}", "https://image.tmdb.org/t/p/w500${movie.poster_path}")'>Select</button>
-      <hr>
-    `;
-    resultsDiv.appendChild(div);
-  });
-}
+    async function searchTMDB() {
+      const query = document.getElementById('tmdbQuery').value;
+      if (!query) return alert('Enter a movie name!');
+      const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=d6b0fe020db56e35227657fd8c0afd5c&query=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      const container = document.getElementById('tmdbResults');
+      container.innerHTML = '';
+      data.results.slice(0, 5).forEach(m => {
+        const div = document.createElement('div');
+        div.innerHTML = `
+          <p><b>${m.title}</b> (${m.release_date})</p>
+          <img src="https://image.tmdb.org/t/p/w200${m.poster_path}" width="100">
+          <button onclick='selectMovie("${m.title.replace(/"/g, '&quot;')}", "${m.overview.replace(/"/g, '&quot;')}", "https://image.tmdb.org/t/p/w500${m.poster_path}")'>Select</button>
+        `;
+        container.appendChild(div);
+      });
+    }
 
-function selectMovie(title, description, poster) {
-  document.getElementById("title").value = title;
-  document.getElementById("description").value = description;
-  document.getElementById("poster").value = poster;
-}
+    function selectMovie(title, desc, poster) {
+      document.getElementById('movieTitle').value = title;
+      document.getElementById('movieDescription').value = desc;
+      document.getElementById('posterUrl').value = poster;
+    }
 
-document.getElementById("movieForm").addEventListener("submit", async e => {
-  e.preventDefault();
-  const movie = {
-    title: title.value,
-    description: description.value,
-    poster: poster.value,
-    link: link.value,
-    vjname: vjname.value
-  };
-  await saveMovie(movie);
-});
+    async function uploadMovie() {
+      const token = document.getElementById('token').value.trim();
+      if (!token) return alert('Please enter GitHub token!');
 
-async function saveMovie(movie) {
-  const token = localStorage.getItem("github_token");
-  if (!token) return alert("Token not found! Please save it first.");
-  
-  const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${FILE_PATH}`);
-  const data = await res.json().catch(() => []);
-  let movies = [];
-  
-  if (data.content) {
-    const decoded = atob(data.content);
-    movies = JSON.parse(decoded);
-  }
+      const repo = document.getElementById('repo').value;
+      const movie = {
+        title: document.getElementById('movieTitle').value,
+        description: document.getElementById('movieDescription').value,
+        poster: document.getElementById('posterUrl').value,
+        video: document.getElementById('videoUrl').value,
+        vj: document.getElementById('vjName').value,
+      };
 
-  movies.unshift(movie);
-  const updated = btoa(JSON.stringify(movies, null, 2));
+      const res = await fetch(`https://api.github.com/repos/${repo}/contents/movies.json`);
+      let existing = [];
+      if (res.ok) {
+        const json = await res.json();
+        existing = JSON.parse(atob(json.content));
+        existing.push(movie);
 
-  await fetch(`https://api.github.com/repos/${REPO}/contents/${FILE_PATH}`, {
-    method: "PUT",
-    headers: {
-      Authorization: `token ${token}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      message: "Add new movie",
-      content: updated,
-      sha: data.sha
-    })
-  }).then(r => {
-    if (r.ok) alert("Movie added successfully!");
-    else alert("Failed to save movie!");
-  });
-}
-</script>
+        const response = await fetch(`https://api.github.com/repos/${repo}/contents/movies.json`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `token ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            message: `Added ${movie.title}`,
+            content: btoa(JSON.stringify(existing, null, 2)),
+            sha: json.sha
+          })
+        });
+
+        if (response.ok) alert('Movie uploaded successfully!');
+        else alert('Failed to upload!');
+      } else {
+        alert('movies.json not found in repo!');
+      }
+    }
+  </script>
 </body>
-  </html>
+</html>
