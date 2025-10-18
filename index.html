@@ -36,9 +36,7 @@
     button:hover {
       background: #0096d1;
     }
-    .hidden {
-      display: none;
-    }
+    .hidden { display: none; }
     .movie-result {
       border: 1px solid #222;
       padding: 10px;
@@ -79,7 +77,7 @@
     <input type="text" id="vjName" placeholder="VJ Name">
 
     <h2>GitHub Upload Settings</h2>
-    <input type="text" id="repo" placeholder="username/repoName (e.g. ashiraf256/Admin-Pannel)">
+    <input type="text" id="repo" placeholder="username/repoName (e.g. ashiraf256/LeoXtream)">
     <input type="password" id="token" placeholder="Enter GitHub Token">
 
     <button onclick="uploadMovie()">📤 Upload Movie</button>
@@ -98,22 +96,22 @@ function checkPassword() {
   }
 }
 
+// ✅ Using TMDB proxy to avoid CORS block
 async function searchTMDB() {
   const query = document.getElementById('tmdbQuery').value.trim();
   if (!query) return alert('Enter a movie name!');
 
   const apiKey = 'd6b0fe020db56e35227657fd8c0afd5c';
-  const url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&language=en-US&query=${encodeURIComponent(query)}`;
+  const proxyUrl = 'https://api.allorigins.win/raw?url='; 
+  const tmdbUrl = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(query)}`;
 
   try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('Request failed');
+    const res = await fetch(proxyUrl + encodeURIComponent(tmdbUrl));
     const data = await res.json();
-
     const container = document.getElementById('tmdbResults');
     container.innerHTML = '';
 
-    if (!data.results.length) {
+    if (!data.results || data.results.length === 0) {
       container.innerHTML = '<p>No results found.</p>';
       return;
     }
@@ -131,7 +129,7 @@ async function searchTMDB() {
     });
   } catch (err) {
     console.error(err);
-    alert('⚠️ Failed to connect to TMDB API. Try again later.');
+    alert('⚠️ Failed to connect to TMDB API. Try again.');
   }
 }
 
@@ -189,4 +187,4 @@ async function uploadMovie() {
 }
   </script>
 </body>
-</html>
+      </html>
